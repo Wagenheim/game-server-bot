@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+      "outDir": "./build",
+      "allowJs": true,
+      "target": "es2020",
+      "moduleResolution":"node",
+      "module": "es2022",
+      "removeComments": true
+    },
+    "include": ["./src/**/*"]
+}
