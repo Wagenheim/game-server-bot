@@ -22,7 +22,7 @@ export class StartCommand extends Ec2AbstractCommand {
                     this.sendReply(interaction, `Server is already running on ${publicIp}:8211`);
                     break;
                 case 'stopped':
-                    this.sendReply(interaction, `Starting up!`);
+                    this.sendReply(interaction, `Starting up! Will post the IP here when its ready.`);
                     await this.startInstance();
                     break;
                 case 'pending':
@@ -49,17 +49,21 @@ export class StartCommand extends Ec2AbstractCommand {
         });
         await ec2Client.send(command);
         return new Promise<void>(() => {
-            setTimeout((resolve) => {
+            setTimeout(() => {
                 const channel = client.channels.cache.get(process.env.DISCORD_CHANNEL_ID) as TextChannel;
                 this.getIp().then(ip => {
-                    if (ip) {
-                        channel.send(`Server up and running on ${ip}:8211`);
-                    } else {
-                        channel.send('No IP after 3 minutes. Run /status to see whats going on.');
+                    try {
+                        if (ip) {
+                            channel.send(`Server up and running on ${ip}:8211`);
+                        } else {
+                            channel.send('No IP after 2 minutes. Run /status to see whats going on.');
+                        }
+                    } catch (error) {
+                        // new ErrorHandler(error.message, 'StartCommand', '/start');
+                        console.log(error);
                     }
                 });
-                resolve();
-            }, 180000);
+            }, 120000);
         });
     }
 

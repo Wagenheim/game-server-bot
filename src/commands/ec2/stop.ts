@@ -48,17 +48,21 @@ export class StopCommand extends Ec2AbstractCommand {
         });
         await ec2Client.send(command);
         return new Promise<void>(() => {
-            setTimeout((resolve) => {
+            setTimeout(() => {
                 const channel = client.channels.cache.get(process.env.DISCORD_CHANNEL_ID) as TextChannel;
                 this.getStatus().then(status => {
-                    if (status === 'stopped') {
-                        channel.send('Server has been stopped.');
-                    } else {
-                        channel.send('Sever hasnt entered stopped state in 3 minutes. Might want to try again.');
+                    try {
+                        if (status === 'stopped') {
+                            channel.send('Server has been stopped.');
+                        } else {
+                            channel.send('Sever hasnt entered stopped state in 1 minutes. Run /status to see what its doing.');
+                        }
+                    } catch (error) {
+                        // new ErrorHandler(error.message, 'StartCommand', '/start');
+                        console.log(error);
                     }
                 });
-                resolve();
-            }, 180000);
+            }, 60000);
         });
     }
 
