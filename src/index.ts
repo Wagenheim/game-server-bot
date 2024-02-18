@@ -2,11 +2,10 @@ import { Events, GatewayIntentBits } from 'discord.js';
 import { configDotenv } from 'dotenv';
 import tsClient from './util/client.js';
 import { EC2Client } from '@aws-sdk/client-ec2';
-import ErrorHandler from './err/error.js';
+import DiscordInteractionErrorHandler from './err/discord-interaction-error-handler.js';
 
 //@KEVIN What if already whitelisted?
-//@KEVIN handle responses from disc/aws
-//@KEVIN error handling
+//@KEVIN duplicated login in startInstance/Stopinstance/reboot
 
 //adds environment vars to process.env
 configDotenv();
@@ -46,8 +45,8 @@ client.on(Events.InteractionCreate, (interaction) => {
         }
         command.execute(interaction);
     } catch (error) {
-        new ErrorHandler(error.message, 'Index', '/' + interaction.command.name);
-        console.log(error);
+        const discordError = new DiscordInteractionErrorHandler('Restart.execute()', interaction, error);
+        discordError.handle();
     }
 });
 

@@ -3,10 +3,17 @@ import { Ec2AbstractCommand } from "./ec2-abstract-command.js";
 import { StopInstancesCommand } from "@aws-sdk/client-ec2";
 import { ec2Client } from "../../index.js";
 import { client } from "../../index.js"
+import DiscordInteractionErrorHandler from "../../err/discord-interaction-error-handler.js";
+import DiscordMessageErrorHandler from "../../err/discord-message-error-handler.js";
+import AwsErrorHandler from "../../err/aws-error-handler.js";
 
 export class StopCommand extends Ec2AbstractCommand {
 
     private description = 'stop the server';
+
+    private awsStopCommand = new StopInstancesCommand({
+        InstanceIds: [process.env.EC2_INSTANCE_ID]
+    });
 
     constructor(name: string){
         super(name);
@@ -37,16 +44,26 @@ export class StopCommand extends Ec2AbstractCommand {
                     break;
             }
         } catch (error){
-            // new ErrorHandler(error.message, 'StartCommand', '/start');
-            console.log(error);
+            const discordError = new DiscordInteractionErrorHandler('Restart.execute()', interaction, error);
+            discordError.handle();
         }
     }
 
     private async stopInstance(): Promise<void> {
-        const command = new StopInstancesCommand({
-            InstanceIds: [process.env.EC2_INSTANCE_ID]
-        });
-        await ec2Client.send(command);
+        
+        try {
+            const response = await ec2Client.send(this.awsStopCommand);
+            if (response.$metadata.httpStatusCode !== 200) {
+                throw new AwsErrorHandler(response, 'restartServer()');
+            }
+        } catch (error) {
+            if (error instanceof AwsErrorHandler) {
+                error.handle();
+            } else {
+                console.log(error);
+            }
+        }
+        
         return new Promise<void>(() => {
             setTimeout(() => {
                 const channel = client.channels.cache.get(process.env.DISCORD_CHANNEL_ID) as TextChannel;
@@ -58,8 +75,8 @@ export class StopCommand extends Ec2AbstractCommand {
                             channel.send('Sever hasnt entered stopped state in 1 minutes. Run /status to see what its doing.');
                         }
                     } catch (error) {
-                        // new ErrorHandler(error.message, 'StartCommand', '/start');
-                        console.log(error);
+                        const discordError = new DiscordMessageErrorHandler('GetIpCommand.execute()', channel, error);
+                        discordError.handle();
                     }
                 });
             }, 60000);

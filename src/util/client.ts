@@ -49,7 +49,6 @@ export default class tsClient extends Client {
             );
             console.log(`Deployed ${this.commandsToGenerate.length} commands.`);
         } catch (error) {
-            // new ErrorHandler(error.message, 'tsClient', 'General');
             console.log(error);
         }
 

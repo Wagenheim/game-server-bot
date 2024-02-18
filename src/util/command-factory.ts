@@ -32,7 +32,6 @@ export default class CommandFactory {
                 return new RestartCommand(name);
             default:
                 throw new Error(`Cannot find a command with ${name}`);
-                // new ErrorHandler(error.message, 'CommandFactory', 'General');
         }
     }
 

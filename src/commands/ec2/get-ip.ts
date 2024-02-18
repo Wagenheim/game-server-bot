@@ -1,5 +1,6 @@
 import { CacheType, ChatInputCommandInteraction } from "discord.js";
 import { Ec2AbstractCommand } from "./ec2-abstract-command.js";
+import DiscordInteractionErrorHandler from "../../err/discord-interaction-error-handler.js";
 
 export class GetIpCommand extends Ec2AbstractCommand {
 
@@ -23,10 +24,9 @@ export class GetIpCommand extends Ec2AbstractCommand {
                 this.sendReply(interaction, 'Currently no public IP. Run /status to see whats going on.');
             }
         } catch (error) {
-            // new ErrorHandler(error.message, 'GetIpCommand', '/ip');
-            console.log(error);
+            const discordError = new DiscordInteractionErrorHandler('GetIpCommand.execute()', interaction, error);
+            discordError.handle();
         }
-
     }
 
 }

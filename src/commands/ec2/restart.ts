@@ -2,10 +2,17 @@ import { CacheType, ChatInputCommandInteraction, TextChannel } from "discord.js"
 import { Ec2AbstractCommand } from "./ec2-abstract-command.js";
 import { RebootInstancesCommand } from "@aws-sdk/client-ec2";
 import { client, ec2Client } from "../../index.js";
+import DiscordMessageErrorHandler from "../../err/discord-message-error-handler.js";
+import DiscordInteractionErrorHandler from "../../err/discord-interaction-error-handler.js";
+import AwsErrorHandler from "../../err/aws-error-handler.js";
 
 export class RestartCommand extends Ec2AbstractCommand {
 
     private description = 'restart the server';
+
+    private awsRebootCommand = new RebootInstancesCommand({
+        InstanceIds: [process.env.EC2_INSTANCE_ID]
+    });
 
     constructor(name: string){
         super(name);
@@ -38,16 +45,26 @@ export class RestartCommand extends Ec2AbstractCommand {
                     break;
             }
         } catch (error){
-            // new ErrorHandler(error.message, 'StartCommand', '/start');
-            console.log(error);
+            const discordError = new DiscordInteractionErrorHandler('Restart.execute()', interaction, error);
+            discordError.handle();
         }
     }
 
-    private async restartServer(): Promise<void> {
-        const command = new RebootInstancesCommand({
-            InstanceIds: [process.env.EC2_INSTANCE_ID]
-        });
-        await ec2Client.send(command);
+    private async restartServer(): Promise<void> { 
+    
+        try {
+            const response = await ec2Client.send(this.awsRebootCommand);
+            if (response.$metadata.httpStatusCode !== 200) {
+                throw new AwsErrorHandler(response, 'restartServer()');
+            }
+        } catch (error) {
+            if (error instanceof AwsErrorHandler) {
+                error.handle();
+            } else {
+                console.log(error);
+            }
+        }
+
         return new Promise<void>(() => {
             setTimeout(() => {
                 const channel = client.channels.cache.get(process.env.DISCORD_CHANNEL_ID) as TextChannel;
@@ -59,8 +76,8 @@ export class RestartCommand extends Ec2AbstractCommand {
                             channel.send('Sever doesnt\'t have an IP after 1 minute. Run /status to see what its doing.');
                         }
                     } catch (error) {
-                        // new ErrorHandler(error.message, 'StartCommand', '/start');
-                        console.log(error);
+                        const discordError = new DiscordMessageErrorHandler('GetIpCommand.execute()', channel, error);
+                        discordError.handle();
                     }
                 });
             }, 60000);

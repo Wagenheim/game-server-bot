@@ -1,5 +1,6 @@
 import { CacheType, ChatInputCommandInteraction, TextChannel } from "discord.js";
 import { Ec2AbstractCommand } from "./ec2-abstract-command.js";
+import DiscordInteractionErrorHandler from "../../err/discord-interaction-error-handler.js";
 
 export class StatusCommand extends Ec2AbstractCommand {
 
@@ -29,8 +30,8 @@ export class StatusCommand extends Ec2AbstractCommand {
                     break;
             }
         } catch (error){
-            // new ErrorHandler(error.message, 'StartCommand', '/start');
-            console.log(error);
+            const discordError = new DiscordInteractionErrorHandler('Restart.execute()', interaction, error);
+            discordError.handle();
         }
     }
 

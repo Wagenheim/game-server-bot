@@ -5,6 +5,7 @@ import {
     MessagePayload, 
     SlashCommandBuilder 
 } from "discord.js";
+import DiscordInteractionErrorHandler from "../../err/discord-interaction-error-handler.js";
 
 export type ReplyMessageType = string | InteractionReplyOptions | MessagePayload;
 
@@ -29,9 +30,19 @@ export abstract class AbstractCommand {
         return !!this.command;
     }
     public async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
-        await interaction.reply(`Execute function still needs to be implemented.`);
+        try {
+            await interaction.reply(`Execute function still needs to be implemented.`);
+        } catch (error) {
+            const discordError = new DiscordInteractionErrorHandler('AbstractCommand.execute()', interaction, error);
+            discordError.handle();
+        }
     }
     public sendReply(interaction: ChatInputCommandInteraction<CacheType>, message: ReplyMessageType): void {
-        interaction.reply(message);
+        try {
+            interaction.reply(message);
+        } catch (error) {
+            const discordError = new DiscordInteractionErrorHandler('AbstractCommand.sendReply()', interaction, error);
+            discordError.handle();
+        }
     }
 }

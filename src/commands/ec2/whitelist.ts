@@ -2,6 +2,7 @@ import { CacheType, ChatInputCommandInteraction } from "discord.js";
 import { Ec2AbstractCommand } from "./ec2-abstract-command.js";
 import { AuthorizeSecurityGroupIngressCommand, AuthorizeSecurityGroupIngressCommandOutput } from "@aws-sdk/client-ec2";
 import { ec2Client } from "../../index.js";
+import DiscordInteractionErrorHandler from "../../err/discord-interaction-error-handler.js";
 
 export class WhitelistCommand extends Ec2AbstractCommand {
 
@@ -27,8 +28,8 @@ export class WhitelistCommand extends Ec2AbstractCommand {
             // }
             this.sendReply(interaction, {content: `Kevin needs to give me AWS permissions to run /${interaction.commandName}`, ephemeral: true});
         } catch (error) {
-            // new ErrorHandler(error.message, 'GetIpCommand', '/ip');
-            console.log(error);
+            const discordError = new DiscordInteractionErrorHandler('Restart.execute()', interaction, error);
+            discordError.handle();
         }
 
     }
