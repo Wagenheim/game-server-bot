@@ -5,6 +5,7 @@ import { EC2Client } from '@aws-sdk/client-ec2';
 import ErrorHandler from './err/error.js';
 
 //@KEVIN What if already whitelisted?
+//@KEVIN handle responses from disc/aws
 //@KEVIN error handling
 
 //adds environment vars to process.env
@@ -12,11 +13,12 @@ configDotenv();
 
 //List of commands to generate when starting up
 const commands = [
-    'start',
+    // 'start',
     'ip',
-    'stop',
+    // 'stop',
     'status',
-    // 'whitelist'
+    // 'whitelist',
+    'restart'
 ];
 
 //Start up the clients

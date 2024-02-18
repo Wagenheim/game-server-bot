@@ -17,16 +17,15 @@ export class WhitelistCommand extends Ec2AbstractCommand {
 
     public async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
         try {
-            const ip = interaction.options.get('ip').value as string;
-            //https://ihateregex.io/expr/ip/
-            const ipRegex = new RegExp('(?:\b25[0-5]|\b2[0-4][0-9]|\b[01]?[0-9][0-9]?)(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}');
-            if (!ipRegex.test(ip)) {
-                this.sendReply(interaction, {content: 'Please enter a valid IP. Ask Kevin for help if needed.', ephemeral: true});    
-            } else {
-                // await this.whitelistIp(ip);
-                this.sendReply(interaction, {content: `Whitelisted ${ip}`, ephemeral: true});
-            }
-
+            // const ip = interaction.options.get('ip').value as string;
+            // const ipRegex = new RegExp('');
+            // if (!ipRegex.test(ip)) {
+            //     this.sendReply(interaction, {content: 'Please enter a valid IP. Ask Kevin for help if needed.', ephemeral: true});    
+            // } else {
+            //     // await this.whitelistIp(ip);
+            //     this.sendReply(interaction, {content: `Whitelisted ${ip}`, ephemeral: true});
+            // }
+            this.sendReply(interaction, {content: `Kevin needs to give me AWS permissions to run /${interaction.commandName}`, ephemeral: true});
         } catch (error) {
             // new ErrorHandler(error.message, 'GetIpCommand', '/ip');
             console.log(error);
@@ -46,8 +45,7 @@ export class WhitelistCommand extends Ec2AbstractCommand {
                 },
             ]
         });
-        const response = await ec2Client.send(command); 
-        console.log(response);
+        const response = await ec2Client.send(command);
         return response;
     }
 

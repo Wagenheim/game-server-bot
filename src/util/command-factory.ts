@@ -1,4 +1,5 @@
 import { GetIpCommand } from "../commands/ec2/get-ip.js";
+import { RestartCommand } from "../commands/ec2/restart.js";
 import { StartCommand } from "../commands/ec2/start.js";
 import { StatusCommand } from "../commands/ec2/status.js";
 import { StopCommand } from "../commands/ec2/stop.js";
@@ -27,6 +28,8 @@ export default class CommandFactory {
                 return new StatusCommand(name);
             case 'whitelist':
                 return new WhitelistCommand(name);
+            case 'restart':
+                return new RestartCommand(name);
             default:
                 throw new Error(`Cannot find a command with ${name}`);
                 // new ErrorHandler(error.message, 'CommandFactory', 'General');
