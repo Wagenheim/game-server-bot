@@ -1,4 +1,12 @@
-import { CacheType, ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import { 
+    CacheType, 
+    ChatInputCommandInteraction, 
+    InteractionReplyOptions, 
+    MessagePayload, 
+    SlashCommandBuilder 
+} from "discord.js";
+
+export type ReplyMessageType = string | InteractionReplyOptions | MessagePayload;
 
 /**
  * Abstract class for creating a new function.
@@ -23,7 +31,7 @@ export abstract class AbstractCommand {
     public async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
         await interaction.reply(`Execute function still needs to be implemented.`);
     }
-    public sendReply(interaction: ChatInputCommandInteraction<CacheType>, message: string): void {
+    public sendReply(interaction: ChatInputCommandInteraction<CacheType>, message: ReplyMessageType): void {
         interaction.reply(message);
     }
 }

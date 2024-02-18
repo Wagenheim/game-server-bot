@@ -27,7 +27,7 @@ export class StopCommand extends Ec2AbstractCommand {
                 case 'pending':
                 case 'shutting-down':
                 case 'stopping':
-                    this.sendReply(interaction, `Server is currently ${instanceState}. Try again in a few minutes`);
+                    this.sendReply(interaction, `Server is currently ${instanceState}. Try running /status in a few minutes.`);
                     break;
                 case 'terminated':
                     this.sendReply(interaction, 'Instance is terminated. Someone should hit up Kevin ASAP.');

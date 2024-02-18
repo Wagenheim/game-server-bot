@@ -1,4 +1,4 @@
-import { AbstractCommand } from "../utility/abstract-command";
+import { AbstractCommand } from "../utility/abstract-command.js";
 import { ec2Client } from "../../index.js";
 import { DescribeInstancesCommand, Instance, InstanceStateName } from "@aws-sdk/client-ec2";
 import ErrorHandler from "../../err/error";
@@ -36,6 +36,5 @@ export abstract class Ec2AbstractCommand extends AbstractCommand {
         } else {
             return '';
         }
-        
     }
 }

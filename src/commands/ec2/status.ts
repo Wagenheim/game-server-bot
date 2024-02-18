@@ -1,12 +1,9 @@
 import { CacheType, ChatInputCommandInteraction, TextChannel } from "discord.js";
 import { Ec2AbstractCommand } from "./ec2-abstract-command.js";
-import { StartInstancesCommand } from "@aws-sdk/client-ec2";
-import { ec2Client } from "../../index.js";
-import { client } from "../../index.js"
 
 export class StatusCommand extends Ec2AbstractCommand {
 
-    private description = 'start up the server';
+    private description = 'get the status of the server';
 
     constructor(name: string){
         super(name);

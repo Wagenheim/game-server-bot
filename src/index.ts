@@ -4,6 +4,8 @@ import tsClient from './util/client.js';
 import { EC2Client } from '@aws-sdk/client-ec2';
 import ErrorHandler from './err/error.js';
 
+//@KEVIN What if already whitelisted?
+//@KEVIN error handling
 
 //adds environment vars to process.env
 configDotenv();
@@ -13,9 +15,9 @@ const commands = [
     'start',
     'ip',
     'stop',
-    'status'
+    'status',
+    // 'whitelist'
 ];
-
 
 //Start up the clients
 export const client = new tsClient({intents: [GatewayIntentBits.Guilds]}, commands);
