@@ -1,12 +1,12 @@
 import { CacheType, ChatInputCommandInteraction, TextChannel } from "discord.js";
 import { Ec2AbstractCommand } from "./ec2-abstract-command.js";
-import { StartInstancesCommand } from "@aws-sdk/client-ec2";
+import { StopInstancesCommand } from "@aws-sdk/client-ec2";
 import { ec2Client } from "../../index.js";
 import { client } from "../../index.js"
 
-export class StartCommand extends Ec2AbstractCommand {
+export class StopCommand extends Ec2AbstractCommand {
 
-    private description = 'start up the server';
+    private description = 'stop the server';
 
     constructor(name: string){
         super(name);
@@ -17,13 +17,12 @@ export class StartCommand extends Ec2AbstractCommand {
         try {
             const instanceState = await this.getStatus();
             switch(instanceState) {
-                case 'running': 
-                    const publicIp = await this.getIp();
-                    this.sendReply(interaction, `Server is already running on ${publicIp}:8211`);
-                    break;
                 case 'stopped':
-                    this.sendReply(interaction, `Starting up!`);
-                    await this.startInstance();
+                    this.sendReply(interaction, 'Instance is already stopped.');
+                    break;
+                case 'running': 
+                    this.sendReply(interaction, 'Shutting server down...');
+                    await this.stopInstance();
                     break;
                 case 'pending':
                 case 'shutting-down':
@@ -43,19 +42,19 @@ export class StartCommand extends Ec2AbstractCommand {
         }
     }
 
-    private async startInstance(): Promise<void> {
-        const command = new StartInstancesCommand({
+    private async stopInstance(): Promise<void> {
+        const command = new StopInstancesCommand({
             InstanceIds: [process.env.EC2_INSTANCE_ID]
         });
         await ec2Client.send(command);
         return new Promise<void>(() => {
             setTimeout((resolve) => {
                 const channel = client.channels.cache.get(process.env.DISCORD_CHANNEL_ID) as TextChannel;
-                this.getIp().then(ip => {
-                    if (ip) {
-                        channel.send(`Server up and running on ${ip}:8211`);
+                this.getStatus().then(status => {
+                    if (status === 'stopped') {
+                        channel.send('Server has been stopped.');
                     } else {
-                        channel.send('No IP after 3 minutes. Run /status to see whats going on.');
+                        channel.send('Sever hasnt entered stopped state in 3 minutes. Might want to try again.');
                     }
                 });
                 resolve();

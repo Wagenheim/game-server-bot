@@ -12,6 +12,7 @@ configDotenv();
 const commands = [
     'start',
     'ip',
+    'stop'
 ];
 
 

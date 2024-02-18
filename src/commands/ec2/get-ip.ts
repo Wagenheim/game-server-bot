@@ -17,7 +17,11 @@ export class GetIpCommand extends Ec2AbstractCommand {
                 this.sendReply(interaction, 'The server is currently offline. Try running with /start.');     
             }
             const publicIp = await this.getIp();
-            this.sendReply(interaction, `${publicIp}:8211`);
+            if (publicIp) {
+                this.sendReply(interaction, `${publicIp}:8211`);
+            } else {
+                this.sendReply(interaction, 'Currently no public IP. Run /status to see whats going on.');
+            }
         } catch (error) {
             // new ErrorHandler(error.message, 'GetIpCommand', '/ip');
             console.log(error);

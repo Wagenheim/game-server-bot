@@ -30,7 +30,12 @@ export abstract class Ec2AbstractCommand extends AbstractCommand {
         return this.instance.State.Name;
     }
     public async getIp(): Promise<string> {
-        await this.describeInstance();
-        return this.instance.PublicIpAddress;
+        const status = await this.getStatus();
+        if (status === 'running') {
+            return this.instance.PublicIpAddress;
+        } else {
+            return '';
+        }
+        
     }
 }
