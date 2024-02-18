@@ -1,3 +1,4 @@
+import { CacheType, ChatInputCommandInteraction } from "discord.js";
 import { AbstractCommand } from "./abstract-command.js";
 
 /**
@@ -14,7 +15,7 @@ export class ServerCommand extends AbstractCommand {
         this.getCommand().setDescription(this.description);
     }
 
-    public async execute(interaction: any): Promise<void> {
+    public async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
         await interaction.reply(`Server name: ${interaction.guild.name}`);
     }
 

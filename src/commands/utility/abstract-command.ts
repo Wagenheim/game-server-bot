@@ -1,4 +1,4 @@
-import { SlashCommandBuilder } from "discord.js";
+import { CacheType, ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 
 /**
  * Abstract class for creating a new function.
@@ -20,7 +20,10 @@ export abstract class AbstractCommand {
     public hasCommand(): boolean {
         return !!this.command;
     }
-    public async execute(interaction): Promise<void> {
+    public async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
         await interaction.reply(`Execute function still needs to be implemented.`);
+    }
+    public sendReply(interaction: ChatInputCommandInteraction<CacheType>, message: string): void {
+        interaction.reply(message);
     }
 }

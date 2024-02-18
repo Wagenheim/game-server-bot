@@ -10,10 +10,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-ec2": "^3.515.0",
+    "aws-sdk": "^2.1560.0",
     "discord.js": "^14.14.1",
     "dotenv": "^16.4.4"
   },
   "devDependencies": {
+    "@types/node": "^20.11.19",
     "typescript": "^5.3.3"
   }
 }

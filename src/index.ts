@@ -1,18 +1,23 @@
 import { Events, GatewayIntentBits } from 'discord.js';
 import { configDotenv } from 'dotenv';
 import tsClient from './util/client.js';
+import { EC2Client } from '@aws-sdk/client-ec2';
+import ErrorHandler from './err/error.js';
+
 
 //adds environment vars to process.env
 configDotenv();
 
 //List of commands to generate when starting up
 const commands = [
-    'server'
+    'start',
+    'ip',
 ];
 
-//Start up the client
-const client = new tsClient({intents: [GatewayIntentBits.Guilds]}, commands);
 
+//Start up the clients
+export const client = new tsClient({intents: [GatewayIntentBits.Guilds]}, commands);
+export const ec2Client = new EC2Client({region: process.env.EC2_INSTANCE_REGION});
 //Load commands into the client and deploys them to the application
 await client.loadCommands();
 
@@ -22,19 +27,20 @@ client.once(Events.ClientReady, readyClient => {
 });
 
 //Handler for incoming / commands
-client.on(Events.InteractionCreate, (interation) => {
-    if (!interation.isChatInputCommand()) {
+client.on(Events.InteractionCreate, (interaction) => {
+    if (!interaction.isChatInputCommand()) {
         return;
     }
     try {
-        const command = client.getCommands().get(interation.commandName);
+        const command = client.getCommands().get(interaction.commandName);
         if (!command) {
-            const message = `Cannot find ${interation.commandName} command.`
-            interation.reply(message);
+            const message = `Cannot find ${interaction.commandName} command.`
+            interaction.reply(message);
             throw new Error(message)
         }
-        command.execute(interation);
+        command.execute(interaction);
     } catch (error) {
+        new ErrorHandler(error.message, 'Index', '/' + interaction.command.name);
         console.log(error);
     }
 });
