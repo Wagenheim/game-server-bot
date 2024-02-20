@@ -3,6 +3,8 @@ import { configDotenv } from 'dotenv';
 import tsClient from './util/client.js';
 import { EC2Client } from '@aws-sdk/client-ec2';
 import DiscordInteractionErrorHandler from './err/discord-interaction-error-handler.js';
+import { CronJob } from 'cron';
+import palRconClient from './util/rcon-client.js';
 
 //@KEVIN What if already whitelisted?
 //@KEVIN duplicated logic in startInstance/Stopinstance/reboot
@@ -50,6 +52,18 @@ client.on(Events.InteractionCreate, (interaction) => {
         discordError.handle();
     }
 });
+
+const playerCheck = new CronJob('0-59 * * * *', () => {
+    const rconClient = new palRconClient()
+        .connect().then(client => {
+            client.cmd('ShowPlayers').then((response) => {
+                console.log(response);
+                client.close();
+            });
+        });
+});
+console.log('Starting cron process...');
+playerCheck.start();
 
 //Login to the application's bot
 const token = process.env.DISCORD_TOKEN;

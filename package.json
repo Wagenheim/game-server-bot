@@ -12,6 +12,7 @@
   "dependencies": {
     "@aws-sdk/client-ec2": "^3.515.0",
     "aws-sdk": "^2.1560.0",
+    "cron": "^3.1.6",
     "discord.js": "^14.14.1",
     "dotenv": "^16.4.4",
     "rcon-client": "^5.0.0-alpha.2"

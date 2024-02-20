@@ -17,17 +17,21 @@ export class ShowPlayersCommand extends AbstractPalworldCommand{
             const rconClient = await new palRconClient().connect();
             const response = await rconClient.cmd('ShowPlayers');
             if (response) {
-                const lineOneRegex = /\w*,\w*,\w*\n/;
+                const lineOneRegex = /[a-z]*,[a-z]*,[a-z]*\n/;
                 const lineOneTrim = response.replace(lineOneRegex, '');
-                const suffixRegex = /,\d*,\d*/g;
-                const playerList = lineOneTrim.replace(suffixRegex, '');
-                this.sendReply(interaction, "```" + playerList + "```");
+                if (lineOneTrim === '') {
+                    this.sendReply(interaction, 'Server is empty!');
+                } else {
+                    const suffixRegex = /,\d*,\d*/g;
+                    const playerList = lineOneTrim.replace(suffixRegex, '');
+                    this.sendReply(interaction, "```" + playerList + "```");
+                }
             }
             await rconClient.close();
         } catch (error) {
-            this.sendReply(interaction, 'Kev, are you running me locally and connected to the game?');
             const discordError = new DiscordInteractionErrorHandler('ShowPlayersCommand.execute()', interaction, error);
             discordError.handle();
+            this.sendReply(interaction, 'Kev, are you running me locally and connected to the game?');
         }
     }
 }
