@@ -5,7 +5,7 @@ import { EC2Client } from '@aws-sdk/client-ec2';
 import DiscordInteractionErrorHandler from './err/discord-interaction-error-handler.js';
 
 //@KEVIN What if already whitelisted?
-//@KEVIN duplicated login in startInstance/Stopinstance/reboot
+//@KEVIN duplicated logic in startInstance/Stopinstance/reboot
 
 //adds environment vars to process.env
 configDotenv();
@@ -17,7 +17,8 @@ const commands = [
     // 'stop',
     'status',
     // 'whitelist',
-    'restart'
+    'restart',
+    'show-players'
 ];
 
 //Start up the clients
