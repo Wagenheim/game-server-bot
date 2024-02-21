@@ -15,17 +15,14 @@ export class ShowPlayersCommand extends AbstractPalworldCommand{
     public async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
         try {
             const rconClient = await new palRconClient().connect();
-            const response = await rconClient.cmd('ShowPlayers');
+            let response = await rconClient.cmd('ShowPlayers');
             if (response) {
-                const lineOneRegex = /[a-z]*,[a-z]*,[a-z]*\n/;
-                const lineOneTrim = response.replace(lineOneRegex, '');
-                if (lineOneTrim === '') {
-                    this.sendReply(interaction, 'Server is empty!');
-                } else {
-                    const suffixRegex = /,\d*,\d*/g;
-                    const playerList = lineOneTrim.replace(suffixRegex, '');
-                    this.sendReply(interaction, "```" + playerList + "```");
-                }
+                const cleanList = response
+                                .replace(/[a-z]*,[a-z]*,[a-z]*\n/, '')
+                                .replace(/,\d*,\d*/g, '')
+                                .trim()
+                                .split('\n');
+                this.sendReply(interaction, "```" + cleanList + "```");
             }
             await rconClient.close();
         } catch (error) {
