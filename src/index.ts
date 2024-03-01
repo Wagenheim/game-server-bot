@@ -1,17 +1,19 @@
-import { Events, GatewayIntentBits } from 'discord.js';
+import { Events, GatewayIntentBits, TextChannel } from 'discord.js';
 import { configDotenv } from 'dotenv';
 import tsClient from './util/client.js';
 import { EC2Client } from '@aws-sdk/client-ec2';
 import DiscordInteractionErrorHandler from './err/discord-interaction-error-handler.js';
-import CronFactory from './util/cron-factory.js';
 import { CronJob } from 'cron';
+import palRconClient from './util/rcon-client.js';
 
 //@KEVIN duplicated logic in startInstance/Stopinstance/reboot
 //@KEVIN implement an "are you sure?"
 
-// cron-CronFactory
 // termination errorhandling
 // do i need to kill the ssh connections?
+// clean up cron/rcon client
+// clean up backup/update commands 
+
 
 //AWS NOTES
     //VPC
@@ -67,32 +69,61 @@ client.on(Events.InteractionCreate, (interaction) => {
     }
 });
 
-//Start the playerCheck cronjob
-// const cronFactory = new CronFactory();
-
-const cronOne = new CronJob('0-59 * * * *', function() {
-    console.log('cronOne Tick');
+const cronOne = new CronJob('0-59 * * * *', async function() {
     const cronOneInsideCallback = this;
-    let playerCount = 0;
 
-    if (playerCount === 0){
-        const cronTwo = new CronJob('0-59 * * * *', () => {
-            console.log('cronTwo Tick');
-            const playerCountTwo = 0;
-            if (playerCountTwo === 0) {
-                //shutdown instance
-                console.log('cronTwo started cronOne');
-                cronOneInsideCallback.start();
-            }
-        });
-        cronTwo.runOnce = true;
-        cronTwo.start();
-        console.log('cronTwo started');
+    const rcon = new palRconClient();
+    const instanceStatus = await rcon.getInstanceStatus();
+    if (instanceStatus !== 'running') {
+        return;
+    }
+
+    const rconClient = await rcon.connect();
+    const showPlayers = await rconClient.cmd('ShowPlayers');
+    await rconClient.close();
+    const playerList = showPlayers
+                            .replace(/[a-z]*,[a-z]*,[a-z]*\n/, '')
+                            .replace(/,\d*,\d*/g, '')
+                            .trim()
+                            .split('\n');
+
+    if (playerList[0] && playerList.length > 0) {
+        return;
+    } else {
+        const channel = client.channels.cache.get(process.env.DISCORD_CHANNEL_ID) as TextChannel;
+        channel.send('No players were found on the server. If there is no one on the server in an hour from now, it will be shut down.');
+
         cronOneInsideCallback.stop();
-        console.log('cronOne stopped');
-    } 
+
+        await new Promise(resolve => setTimeout(resolve, 60*6000));
+
+        const playerCountTwo = 0;
+        const instanceStatusTwo = await rcon.getInstanceStatus();
+        if (instanceStatusTwo !== 'running') {
+            cronOneInsideCallback.start();
+            return;
+        }
+
+        const rconTwo = new palRconClient();
+        const rconClientTwo = await rconTwo.connect();
+        const showPlayersTwo = await rconClientTwo.cmd('ShowPlayers');
+        await rconClientTwo.close();
+        const playerListTwo = showPlayersTwo
+                                .replace(/[a-z]*,[a-z]*,[a-z]*\n/, '')
+                                .replace(/,\d*,\d*/g, '')
+                                .trim()
+                                .split('\n');
+
+        if (playerListTwo[0] && playerCountTwo > 0) {
+            cronOneInsideCallback.start();
+            return;
+        } else {
+            await rcon.stopInstance();
+        }
+        cronOneInsideCallback.start();
+    }
 }).start();
-console.log('cronOne started');
+console.log('Cron started');
 
 //Login to the application's bot
 const token = process.env.DISCORD_TOKEN;

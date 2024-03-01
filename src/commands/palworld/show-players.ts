@@ -22,7 +22,12 @@ export class ShowPlayersCommand extends AbstractPalworldCommand{
                                 .replace(/,\d*,\d*/g, '')
                                 .trim()
                                 .split('\n');
-                this.sendReply(interaction, "```" + cleanList + "```");
+
+                if (cleanList[0] && cleanList.length > 0) {
+                    this.sendReply(interaction, "```" + cleanList + "```");
+                } else {
+                    this.sendReply(interaction, 'The server is currently empty.');
+                }
             }
             await rconClient.close();
         } catch (error) {
