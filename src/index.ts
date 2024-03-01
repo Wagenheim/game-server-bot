@@ -4,22 +4,37 @@ import tsClient from './util/client.js';
 import { EC2Client } from '@aws-sdk/client-ec2';
 import DiscordInteractionErrorHandler from './err/discord-interaction-error-handler.js';
 import CronFactory from './util/cron-factory.js';
+import { CronJob } from 'cron';
 
-//@KEVIN What if already whitelisted?
 //@KEVIN duplicated logic in startInstance/Stopinstance/reboot
+//@KEVIN implement an "are you sure?"
+
+// cron-CronFactory
+// termination errorhandling
+// do i need to kill the ssh connections?
+
+//AWS NOTES
+    //VPC
+        //Makes one for each sub-region
+            //ec2-cont & palworld use 1b
+        //can make other subnets private by making a new Acl & reassigning
+            //new acl wont allow traffic in/oug from 0.0.0.0/0
+
 
 //adds environment vars to process.env
 configDotenv();
 
 //List of commands to generate when starting up
 const commands = [
-    // 'start',
+    'start',
     'ip',
-    // 'stop',
+    'stop',
     'status',
-    // 'whitelist',
+    'whitelist',
     'restart',
-    'show-players'
+    'show-players',
+    'update',
+    'backup'
 ];
 
 //Start up the clients
@@ -52,9 +67,32 @@ client.on(Events.InteractionCreate, (interaction) => {
     }
 });
 
-//Have the counter working, need to figure out how to check for 0 for a full hour.
-var test = {counter: 0};
-CronFactory.createPlayerCountJob('0-59 * * * *', test.counter);
+//Start the playerCheck cronjob
+// const cronFactory = new CronFactory();
+
+const cronOne = new CronJob('0-59 * * * *', function() {
+    console.log('cronOne Tick');
+    const cronOneInsideCallback = this;
+    let playerCount = 0;
+
+    if (playerCount === 0){
+        const cronTwo = new CronJob('0-59 * * * *', () => {
+            console.log('cronTwo Tick');
+            const playerCountTwo = 0;
+            if (playerCountTwo === 0) {
+                //shutdown instance
+                console.log('cronTwo started cronOne');
+                cronOneInsideCallback.start();
+            }
+        });
+        cronTwo.runOnce = true;
+        cronTwo.start();
+        console.log('cronTwo started');
+        cronOneInsideCallback.stop();
+        console.log('cronOne stopped');
+    } 
+}).start();
+console.log('cronOne started');
 
 //Login to the application's bot
 const token = process.env.DISCORD_TOKEN;

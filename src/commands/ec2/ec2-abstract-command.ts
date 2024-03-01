@@ -23,7 +23,7 @@ export abstract class Ec2AbstractCommand extends AbstractCommand {
             if (statusCode === 200) {
                 this.instance = response.Reservations[0].Instances[0];
             } else {
-                throw new AwsErrorHandler(response, 'describeInstance()');
+                throw new AwsErrorHandler(response, 'Ec2AbstractCommand.describeInstance()');
             }
         } catch (error) {
             if (error instanceof AwsErrorHandler) {

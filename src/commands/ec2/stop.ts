@@ -27,13 +27,11 @@ export class StopCommand extends Ec2AbstractCommand {
                 case 'stopped':
                     this.sendReply(interaction, 'Instance is already stopped.');
                     break;
-                case 'running': 
-
+                case 'running':
                     if (interaction.user.username !== process.env.DISCORD_ADMIN_USER_NAME) {
                         this.sendReply(interaction, 'LOL YOU THOUGHT!');
                         break;
                     }
-
                     this.sendReply(interaction, 'Shutting server down...');
                     await this.stopInstance();
                     break;
@@ -43,6 +41,7 @@ export class StopCommand extends Ec2AbstractCommand {
                     this.sendReply(interaction, `Server is currently ${instanceState}. Try running /status in a few minutes.`);
                     break;
                 case 'terminated':
+                    //@KEVIN terminated?
                     this.sendReply(interaction, 'Instance is terminated. Someone should hit up Kevin ASAP.');
                     break;
                 default:
@@ -50,7 +49,7 @@ export class StopCommand extends Ec2AbstractCommand {
                     break;
             }
         } catch (error){
-            const discordError = new DiscordInteractionErrorHandler('Restart.execute()', interaction, error);
+            const discordError = new DiscordInteractionErrorHandler('StopCommand.execute()', interaction, error);
             discordError.handle();
         }
     }

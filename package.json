@@ -15,7 +15,8 @@
     "cron": "^3.1.6",
     "discord.js": "^14.14.1",
     "dotenv": "^16.4.4",
-    "rcon-client": "^5.0.0-alpha.2"
+    "rcon-client": "^5.0.0-alpha.2",
+    "simple-ssh": "^1.1.1"
   },
   "devDependencies": {
     "@types/node": "^20.11.19",

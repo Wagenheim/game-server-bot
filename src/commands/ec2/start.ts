@@ -38,6 +38,7 @@ export class StartCommand extends Ec2AbstractCommand {
                     this.sendReply(interaction, `Server is currently ${instanceState}. Try again in a few minutes`);
                     break;
                 case 'terminated':
+                    //@KEVIN terminated?
                     this.sendReply(interaction, 'Instance is terminated. Someone should hit up Kevin ASAP.');
                     break;
                 default:
@@ -45,7 +46,7 @@ export class StartCommand extends Ec2AbstractCommand {
                     break;
             }
         } catch (error){
-            const discordError = new DiscordInteractionErrorHandler('Restart.execute()', interaction, error);
+            const discordError = new DiscordInteractionErrorHandler('StartCommand.execute()', interaction, error);
             discordError.handle();
         }
     }

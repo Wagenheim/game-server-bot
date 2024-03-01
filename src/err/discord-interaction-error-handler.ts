@@ -10,7 +10,7 @@ export default class DiscordInteractionErrorHandler extends ErrorHandlerAbstract
         super();
         this.adminMessage = `
             A Discord interaction error occurred.
-            Command: ${interaction.commandName}.
+            Command: /${interaction.commandName}.
             Function: ${functionName}.
             User: ${interaction.user.username}.
             Node: ${nodeError ?? 'N/A'}
