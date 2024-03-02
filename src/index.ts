@@ -64,7 +64,7 @@ client.on(Events.InteractionCreate, (interaction) => {
         }
         command.execute(interaction);
     } catch (error) {
-        const discordError = new DiscordInteractionErrorHandler('Restart.execute()', interaction, error);
+        const discordError = new DiscordInteractionErrorHandler('index.execute()', interaction, error);
         discordError.handle();
     }
 });
@@ -79,8 +79,21 @@ const cronOne = new CronJob('0,30 * * * *', async function() {
     }
 
     const rconClient = await rcon.connect();
-    const showPlayers = await rconClient.cmd('ShowPlayers');
+    let showPlayers = '';
+    try {
+        showPlayers = await rconClient.cmd('ShowPlayers');
+    } catch {
+        //If theres a problem with rcon, ignore and move on.
+        //Probably my JP name.
+        return;
+    }
     await rconClient.close();
+
+    if (!showPlayers) {
+        //if response didnt change, return. Probably due to my JP name.
+        return;
+    }
+
     const playerList = showPlayers
                             .replace(/[a-z]*,[a-z]*,[a-z]*\n/, '')
                             .replace(/,\d*,\d*/g, '')
@@ -105,8 +118,21 @@ const cronOne = new CronJob('0,30 * * * *', async function() {
 
         const rconTwo = new palRconClient();
         const rconClientTwo = await rconTwo.connect();
-        const showPlayersTwo = await rconClientTwo.cmd('ShowPlayers');
+        let showPlayersTwo = '';
+        try {
+            showPlayersTwo = await rconClientTwo.cmd('ShowPlayers');
+        } catch {
+            //If theres a problem with rcon, ignore and move on.
+            //Probably my JP name.
+            return;
+        }
         await rconClientTwo.close();
+
+        if (!showPlayers) {
+            //if response didnt change, return. Probably due to my JP name.
+            return;
+        }
+
         const playerListTwo = showPlayersTwo
                                 .replace(/[a-z]*,[a-z]*,[a-z]*\n/, '')
                                 .replace(/,\d*,\d*/g, '')
