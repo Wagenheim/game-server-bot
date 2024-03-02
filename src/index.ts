@@ -69,7 +69,7 @@ client.on(Events.InteractionCreate, (interaction) => {
     }
 });
 
-const cronOne = new CronJob('0-59 * * * *', async function() {
+const cronOne = new CronJob('0,30 * * * *', async function() {
     const cronOneInsideCallback = this;
 
     const rcon = new palRconClient();
@@ -95,9 +95,8 @@ const cronOne = new CronJob('0-59 * * * *', async function() {
 
         cronOneInsideCallback.stop();
 
-        await new Promise(resolve => setTimeout(resolve, 60*6000));
+        await new Promise(resolve => setTimeout(resolve, 60*60000));
 
-        const playerCountTwo = 0;
         const instanceStatusTwo = await rcon.getInstanceStatus();
         if (instanceStatusTwo !== 'running') {
             cronOneInsideCallback.start();
@@ -114,13 +113,14 @@ const cronOne = new CronJob('0-59 * * * *', async function() {
                                 .trim()
                                 .split('\n');
 
-        if (playerListTwo[0] && playerCountTwo > 0) {
+        if (playerListTwo[0] && playerListTwo.length > 0) {
             cronOneInsideCallback.start();
             return;
         } else {
             await rcon.stopInstance();
+            cronOneInsideCallback.start();
+            return;
         }
-        cronOneInsideCallback.start();
     }
 }).start();
 console.log('Cron started');

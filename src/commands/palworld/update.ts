@@ -46,19 +46,21 @@ export default class UpdateCommand extends AbstractPalworldCommand {
                         {
                             exit: (code, sdtout, stderr) => {
                                 if (code === 0) {
-                                    this.channel.send('Updating the server...');
+                                    this.channel.send('Updating...');
                                     sshClient.getSSH().exec(
                                         process.env.EC2_PALWORLD_UPDATE,
                                         {
                                             exit: (code, sdtout, stderr) => {
                                                 if (code === 0) {
-                                                    this.channel.send('Update complete, Restarting the server...');
+                                                    this.channel.send('Update complete, Restarting...');
                                                     sshClient.getSSH().exec(
                                                         process.env.EC2_START_PALWORLD,
                                                         {
                                                             exit: (code, sdtout, stderr) => {
                                                                 if (code === 0) {
-                                                                    this.channel.send(`Restarted the server. Wait like 1-2 minutes before trying to connect. IP: ${this.ip}:8211`);
+                                                                    setTimeout(() => {
+                                                                        this.channel.send(`Restarted the server. IP: ${this.ip}:8211`);
+                                                                    }, 120000);
                                                                 } else {
                                                                     throw new SshClientErrorHandler('UpdateCommand.updatePalworldServer()', stderr);
                                                                 }

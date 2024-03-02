@@ -29,7 +29,7 @@ export class StopCommand extends Ec2AbstractCommand {
                     break;
                 case 'running':
                     if (interaction.user.username !== process.env.DISCORD_ADMIN_USER_NAME) {
-                        this.sendReply(interaction, 'LOL YOU THOUGHT!');
+                        this.sendReply(interaction, 'Not sure I should be doing this without Kevin...');
                         break;
                     }
                     this.sendReply(interaction, 'Shutting server down...');

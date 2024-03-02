@@ -5,7 +5,8 @@
   "main": "./build/index.js",
   "type": "module",
   "scripts": {
-    "start": "npx tsc && node build/index.js"
+    "start": "npx tsc && node build/index.js",
+    "bot": "node build/index.js"
   },
   "author": "",
   "license": "ISC",

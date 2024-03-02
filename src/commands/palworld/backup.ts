@@ -58,7 +58,7 @@ export default class BackupCommannd extends AbstractPalworldCommand {
                         {
                             exit: (code, sdtout, stderr) => {
                                 if (code === 0) {
-                                    this.channel.send('Backup complete, restarting server...');
+                                    this.channel.send('Backup complete, restarting...');
                                 } else {
                                     throw new SshClientErrorHandler('BackupCommand.backupPalworldServer()', stderr);
                                 }
@@ -69,7 +69,9 @@ export default class BackupCommannd extends AbstractPalworldCommand {
                         {
                             exit: (code, sdtout, stderr) => {
                                 if (code === 0) {
-                                    this.channel.send(`Restarted the server. Wait like 1-2 minutes before trying to connect. IP: ${this.ip}:8211`);
+                                    setTimeout(() => {
+                                        this.channel.send(`Restarted the server. IP: ${this.ip}:8211`);
+                                    }, 120000);
                                 } else {
                                     throw new SshClientErrorHandler('BackupCommand.backupPalworldServer()', stderr);
                                 }
