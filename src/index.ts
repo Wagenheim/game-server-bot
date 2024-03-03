@@ -106,13 +106,13 @@ const cronOne = new CronJob('0,30 * * * *', async function() {
         const channel = client.channels.cache.get(process.env.DISCORD_CHANNEL_ID) as TextChannel;
         channel.send('No players were found on the server. If there is no one on the server in an hour from now, it will be shut down.');
 
-        cronOneInsideCallback.stop();
+        // cronOneInsideCallback.stop();
 
         await new Promise(resolve => setTimeout(resolve, 60*60000));
 
         const instanceStatusTwo = await rcon.getInstanceStatus();
         if (instanceStatusTwo !== 'running') {
-            cronOneInsideCallback.start();
+            // cronOneInsideCallback.start();
             return;
         }
 
@@ -140,11 +140,12 @@ const cronOne = new CronJob('0,30 * * * *', async function() {
                                 .split('\n');
 
         if (playerListTwo[0] && playerListTwo.length > 0) {
-            cronOneInsideCallback.start();
+            // cronOneInsideCallback.start();
             return;
         } else {
             await rcon.stopInstance();
-            cronOneInsideCallback.start();
+            channel.send('Server has been shut down.');
+            // cronOneInsideCallback.start();
             return;
         }
     }
