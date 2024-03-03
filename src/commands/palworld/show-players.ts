@@ -15,17 +15,25 @@ export class ShowPlayersCommand extends AbstractPalworldCommand{
     public async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
         try {
             const rconClient = await new palRconClient().connect();
-            const response = await rconClient.cmd('ShowPlayers');
+            await interaction.deferReply();
+            let response = '';
+            response = await rconClient.cmd('ShowPlayers');
             if (response) {
-                const lineOneRegex = /\w*,\w*,\w*\n/;
-                const lineOneTrim = response.replace(lineOneRegex, '');
-                const suffixRegex = /,\d*,\d*/g;
-                const playerList = lineOneTrim.replace(suffixRegex, '');
-                this.sendReply(interaction, "```" + playerList + "```");
+                const cleanList = response
+                                .replace(/[a-z]*,[a-z]*,[a-z]*\n/, '')
+                                .replace(/,\d*,\d*/g, '')
+                                .trim()
+                                .split('\n');
+
+                if (cleanList[0] && cleanList.length > 0) {
+                    await interaction.editReply("```" + cleanList + "```");
+                } else {
+                    await interaction.editReply('The server is currently empty.');
+                }
+            } else {
+                await interaction.editReply("Show players command failed, is Kevin connected?");
             }
-            await rconClient.close();
         } catch (error) {
-            this.sendReply(interaction, 'Kev, are you running me locally and connected to the game?');
             const discordError = new DiscordInteractionErrorHandler('ShowPlayersCommand.execute()', interaction, error);
             discordError.handle();
         }

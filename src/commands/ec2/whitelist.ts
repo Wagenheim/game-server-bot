@@ -19,7 +19,7 @@ export class WhitelistCommand extends Ec2AbstractCommand {
     public async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
         try {
             // const ip = interaction.options.get('ip').value as string;
-            // const ipRegex = new RegExp('');
+            // const ipRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
             // if (!ipRegex.test(ip)) {
             //     this.sendReply(interaction, {content: 'Please enter a valid IP. Ask Kevin for help if needed.', ephemeral: true});    
             // } else {
@@ -28,7 +28,7 @@ export class WhitelistCommand extends Ec2AbstractCommand {
             // }
             this.sendReply(interaction, {content: `Kevin needs to give me AWS permissions to run /${interaction.commandName}`, ephemeral: true});
         } catch (error) {
-            const discordError = new DiscordInteractionErrorHandler('Restart.execute()', interaction, error);
+            const discordError = new DiscordInteractionErrorHandler('WhiteListCommand.execute()', interaction, error);
             discordError.handle();
         }
 

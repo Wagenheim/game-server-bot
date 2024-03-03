@@ -23,6 +23,7 @@ export class GetIpCommand extends Ec2AbstractCommand {
             } else {
                 this.sendReply(interaction, 'Currently no public IP. Run /status to see whats going on.');
             }
+            //@KEVIN terminated?
         } catch (error) {
             const discordError = new DiscordInteractionErrorHandler('GetIpCommand.execute()', interaction, error);
             discordError.handle();

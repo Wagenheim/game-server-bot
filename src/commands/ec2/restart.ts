@@ -24,10 +24,12 @@ export class RestartCommand extends Ec2AbstractCommand {
             const instanceState = await this.getStatus();
             switch(instanceState) {
                 case 'running':
-                    //Need to give aws permissions 
-                    this.sendReply(interaction, `Kevin needs to give me AWS permissions to run /${interaction.commandName}.`);
-                    // this.sendReply(interaction, 'Restarting server! Will post the IP when its ready.');
-                    // await this.restartServer();
+                    if (interaction.user.username !== process.env.DISCORD_ADMIN_USER_NAME) {
+                        this.sendReply(interaction, 'Not sure I should be doing this without Kevin...');
+                        break;
+                    }
+                    this.sendReply(interaction, 'Restarting server! Will post the IP when its ready.');
+                    await this.restartServer();
                     break;
                 case 'stopped':
                     this.sendReply(interaction, 'Server is currently stopped. Run /start to boot it up!');
@@ -38,6 +40,7 @@ export class RestartCommand extends Ec2AbstractCommand {
                     this.sendReply(interaction, `Server is currently ${instanceState}. Wait a few minutes and run /status.`);
                     break;
                 case 'terminated':
+                    //@KEVIN terminated?
                     this.sendReply(interaction, 'Instance is terminated. Someone should hit up Kevin ASAP.');
                     break;
                 default:
@@ -45,7 +48,7 @@ export class RestartCommand extends Ec2AbstractCommand {
                     break;
             }
         } catch (error){
-            const discordError = new DiscordInteractionErrorHandler('Restart.execute()', interaction, error);
+            const discordError = new DiscordInteractionErrorHandler('RestartCommand.execute()', interaction, error);
             discordError.handle();
         }
     }
@@ -55,7 +58,7 @@ export class RestartCommand extends Ec2AbstractCommand {
         try {
             const response = await ec2Client.send(this.awsRebootCommand);
             if (response.$metadata.httpStatusCode !== 200) {
-                throw new AwsErrorHandler(response, 'restartServer()');
+                throw new AwsErrorHandler(response, 'RestartCommand.restartServer()');
             }
         } catch (error) {
             if (error instanceof AwsErrorHandler) {
@@ -76,7 +79,7 @@ export class RestartCommand extends Ec2AbstractCommand {
                             channel.send('Sever doesnt\'t have an IP after 1 minute. Run /status to see what its doing.');
                         }
                     } catch (error) {
-                        const discordError = new DiscordMessageErrorHandler('GetIpCommand.execute()', channel, error);
+                        const discordError = new DiscordMessageErrorHandler('RestartCommand.execute()', channel, error);
                         discordError.handle();
                     }
                 });
