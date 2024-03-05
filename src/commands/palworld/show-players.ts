@@ -14,6 +14,14 @@ export class ShowPlayersCommand extends AbstractPalworldCommand{
 
     public async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
         try {
+
+            const instanceState = await this.getStatus();
+
+            if (instanceState !== 'running') {
+                interaction.reply('Instance is not running, run /status to see whats going on.');
+                return;
+            }
+
             const rconClient = await new palRconClient().connect();
             await interaction.deferReply();
             let response = '';
