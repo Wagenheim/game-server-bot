@@ -1,7 +1,7 @@
 import { CacheType, ChatInputCommandInteraction } from "discord.js";
 import { AbstractGameCommand } from "../abstract-game-command.js";
 import DiscordInteractionErrorHandler from "../../err/discord-interaction-error-handler.js";
-import palRconClient from "../../util/rcon-client.js";
+import { executeRconCommand } from "../../util/rcon.js";
 import { adapter } from "../../index.js";
 import { ec2Instance } from "../../util/aws/ec2-instance.js";
 
@@ -16,7 +16,6 @@ export class ShowPlayersCommand extends AbstractGameCommand {
 
     public async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
         try {
-
             const instanceState = await ec2Instance.getStatus();
 
             if (instanceState !== 'running') {
@@ -24,10 +23,9 @@ export class ShowPlayersCommand extends AbstractGameCommand {
                 return;
             }
 
-            const rconClient = await new palRconClient().connect();
             await interaction.deferReply();
-            let response = '';
-            response = await rconClient.cmd(adapter.rcon.listPlayersCommand);
+            const response = await executeRconCommand(adapter.rcon.listPlayersCommand);
+
             if (response) {
                 const cleanList = adapter.rcon.parsePlayerNames(response);
 

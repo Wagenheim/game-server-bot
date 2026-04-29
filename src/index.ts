@@ -2,7 +2,7 @@ import { Events, GatewayIntentBits, TextChannel } from 'discord.js';
 import tsClient from './util/client.js';
 import DiscordInteractionErrorHandler from './err/discord-interaction-error-handler.js';
 import { CronJob } from 'cron';
-import palRconClient from './util/rcon-client.js';
+import { executeRconCommand } from './util/rcon.js';
 import { config } from './util/config.js';
 import { loadAdapter } from './games/load-adapter.js';
 import { ec2Instance } from './util/aws/ec2-instance.js';
@@ -70,22 +70,19 @@ client.on(Events.InteractionCreate, (interaction) => {
 const cronOne = new CronJob('0,30 * * * *', async function() {
     const cronOneInsideCallback = this;
 
-    const rcon = new palRconClient();
     const instanceStatus = await ec2Instance.getStatus();
     if (instanceStatus !== 'running') {
         return;
     }
 
-    const rconClient = await rcon.connect();
     let showPlayers = '';
     try {
-        showPlayers = await rconClient.cmd(adapter.rcon.listPlayersCommand);
+        showPlayers = await executeRconCommand(adapter.rcon.listPlayersCommand);
     } catch {
         //If theres a problem with rcon, ignore and move on.
         //Probably my JP name.
         return;
     }
-    await rconClient.close();
 
     if (!showPlayers) {
         //if response didnt change, return. Probably due to my JP name.
@@ -110,17 +107,14 @@ const cronOne = new CronJob('0,30 * * * *', async function() {
             return;
         }
 
-        const rconTwo = new palRconClient();
-        const rconClientTwo = await rconTwo.connect();
         let showPlayersTwo = '';
         try {
-            showPlayersTwo = await rconClientTwo.cmd(adapter.rcon.listPlayersCommand);
+            showPlayersTwo = await executeRconCommand(adapter.rcon.listPlayersCommand);
         } catch {
             //If theres a problem with rcon, ignore and move on.
             //Probably my JP name.
             return;
         }
-        await rconClientTwo.close();
 
         if (!showPlayers) {
             //if response didnt change, return. Probably due to my JP name.
@@ -133,7 +127,7 @@ const cronOne = new CronJob('0,30 * * * *', async function() {
             // cronOneInsideCallback.start();
             return;
         } else {
-            await rcon.stopInstance();
+            await ec2Instance.stop();
             channel.send('Server has been shut down.');
             // cronOneInsideCallback.start();
             return;

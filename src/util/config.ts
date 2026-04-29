@@ -10,9 +10,7 @@ export const config = {
 
     EC2_INSTANCE_ID: requiredString('EC2_INSTANCE_ID'),
     EC2_INSTANCE_REGION: requiredString('EC2_INSTANCE_REGION'),
-    EC2_MAIN_USER: requiredString('EC2_MAIN_USER'),
     EC2_SG_ID: requiredString('EC2_SG_ID'),
-    EC2_SSH_PRIVATE_KEY: requiredString('EC2_SSH_PRIVATE_KEY'),
 
     RCON_PASSWORD: requiredString('RCON_PASSWORD'),
     RCON_PORT: requiredNumber('RCON_PORT'),
