@@ -1,10 +1,11 @@
 import { Events, GatewayIntentBits, TextChannel } from 'discord.js';
-import { configDotenv } from 'dotenv';
 import tsClient from './util/client.js';
-import { EC2Client } from '@aws-sdk/client-ec2';
 import DiscordInteractionErrorHandler from './err/discord-interaction-error-handler.js';
 import { CronJob } from 'cron';
 import palRconClient from './util/rcon-client.js';
+import { config } from './util/config.js';
+import { loadAdapter } from './games/load-adapter.js';
+import { ec2Instance } from './util/aws/ec2-instance.js';
 
 //@KEVIN duplicated logic in startInstance/Stopinstance/reboot
 //@KEVIN implement an "are you sure?"
@@ -23,9 +24,6 @@ import palRconClient from './util/rcon-client.js';
             //new acl wont allow traffic in/oug from 0.0.0.0/0
 
 
-//adds environment vars to process.env
-configDotenv();
-
 //List of commands to generate when starting up
 const commands = [
     'start',
@@ -40,8 +38,8 @@ const commands = [
 ];
 
 //Start up the clients
+export const adapter = loadAdapter();
 export const client = new tsClient({intents: [GatewayIntentBits.Guilds]}, commands);
-export const ec2Client = new EC2Client({region: process.env.EC2_INSTANCE_REGION});
 //Load commands into the client and deploys them to the application
 await client.loadCommands();
 
@@ -73,7 +71,7 @@ const cronOne = new CronJob('0,30 * * * *', async function() {
     const cronOneInsideCallback = this;
 
     const rcon = new palRconClient();
-    const instanceStatus = await rcon.getInstanceStatus();
+    const instanceStatus = await ec2Instance.getStatus();
     if (instanceStatus !== 'running') {
         return;
     }
@@ -81,7 +79,7 @@ const cronOne = new CronJob('0,30 * * * *', async function() {
     const rconClient = await rcon.connect();
     let showPlayers = '';
     try {
-        showPlayers = await rconClient.cmd('ShowPlayers');
+        showPlayers = await rconClient.cmd(adapter.rcon.listPlayersCommand);
     } catch {
         //If theres a problem with rcon, ignore and move on.
         //Probably my JP name.
@@ -94,23 +92,19 @@ const cronOne = new CronJob('0,30 * * * *', async function() {
         return;
     }
 
-    const playerList = showPlayers
-                            .replace(/[a-z]*,[a-z]*,[a-z]*\n/, '')
-                            .replace(/,\d*,\d*/g, '')
-                            .trim()
-                            .split('\n');
+    const playerList = adapter.rcon.parsePlayerNames(showPlayers);
 
-    if (playerList[0] && playerList.length > 0) {
+    if (playerList.length > 0) {
         return;
     } else {
-        const channel = client.channels.cache.get(process.env.DISCORD_CHANNEL_ID) as TextChannel;
+        const channel = client.channels.cache.get(config.DISCORD_CHANNEL_ID) as TextChannel;
         channel.send('No players were found on the server. If there is no one on the server in an hour from now, it will be shut down.');
 
         // cronOneInsideCallback.stop();
 
         await new Promise(resolve => setTimeout(resolve, 60*60000));
 
-        const instanceStatusTwo = await rcon.getInstanceStatus();
+        const instanceStatusTwo = await ec2Instance.getStatus();
         if (instanceStatusTwo !== 'running') {
             // cronOneInsideCallback.start();
             return;
@@ -120,7 +114,7 @@ const cronOne = new CronJob('0,30 * * * *', async function() {
         const rconClientTwo = await rconTwo.connect();
         let showPlayersTwo = '';
         try {
-            showPlayersTwo = await rconClientTwo.cmd('ShowPlayers');
+            showPlayersTwo = await rconClientTwo.cmd(adapter.rcon.listPlayersCommand);
         } catch {
             //If theres a problem with rcon, ignore and move on.
             //Probably my JP name.
@@ -133,13 +127,9 @@ const cronOne = new CronJob('0,30 * * * *', async function() {
             return;
         }
 
-        const playerListTwo = showPlayersTwo
-                                .replace(/[a-z]*,[a-z]*,[a-z]*\n/, '')
-                                .replace(/,\d*,\d*/g, '')
-                                .trim()
-                                .split('\n');
+        const playerListTwo = adapter.rcon.parsePlayerNames(showPlayersTwo);
 
-        if (playerListTwo[0] && playerListTwo.length > 0) {
+        if (playerListTwo.length > 0) {
             // cronOneInsideCallback.start();
             return;
         } else {
@@ -153,5 +143,4 @@ const cronOne = new CronJob('0,30 * * * *', async function() {
 console.log('Cron started');
 
 //Login to the application's bot
-const token = process.env.DISCORD_TOKEN;
-client.login(token);
+client.login(config.DISCORD_TOKEN);

@@ -1,10 +1,12 @@
 import { CacheType, ChatInputCommandInteraction } from "discord.js";
-import { Ec2AbstractCommand } from "./ec2-abstract-command.js";
+import { AbstractCommand } from "../utility/abstract-command.js";
 import { AuthorizeSecurityGroupIngressCommand, AuthorizeSecurityGroupIngressCommandOutput } from "@aws-sdk/client-ec2";
-import { ec2Client } from "../../index.js";
 import DiscordInteractionErrorHandler from "../../err/discord-interaction-error-handler.js";
+import { config } from "../../util/config.js";
+import { adapter } from "../../index.js";
+import { ec2Client } from "../../util/aws/ec2-client.js";
 
-export class WhitelistCommand extends Ec2AbstractCommand {
+export class WhitelistCommand extends AbstractCommand {
 
     private description = 'whitelist an ip';
     private paramDescription = 'ip to whitelist';
@@ -36,12 +38,12 @@ export class WhitelistCommand extends Ec2AbstractCommand {
 
     private async whitelistIp(ip: string): Promise<AuthorizeSecurityGroupIngressCommandOutput> {
         const command = new AuthorizeSecurityGroupIngressCommand({
-            GroupId: process.env.EC2_SG_ID,
+            GroupId: config.EC2_SG_ID,
             IpPermissions: [
                 {
                     IpProtocol: "udp",
-                    FromPort: Number(process.env.EC2_SG_PORT),
-                    ToPort: Number(process.env.EC2_SG_PORT),
+                    FromPort: adapter.gamePort,
+                    ToPort: adapter.gamePort,
                     IpRanges: [{ CidrIp: `${ip}/32` }],
                 },
             ]

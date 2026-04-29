@@ -1,6 +1,7 @@
 import { Client, ClientOptions, Collection, REST, Routes } from 'discord.js'
 import CommandFactory from './command-factory.js';
 import { AbstractCommand } from '../commands/utility/abstract-command.js';
+import { config } from './config.js';
 
 /**
  * A wrapper class that extends discord.js' client.
@@ -37,13 +38,13 @@ export default class tsClient extends Client {
         }
 
         //Deploy the commands
-        const rest = new REST().setToken(process.env.DISCORD_TOKEN);
+        const rest = new REST().setToken(config.DISCORD_TOKEN);
         try {
             console.log("Deploying Commands...");
             await rest.put(
                 Routes.applicationGuildCommands(
-                    process.env.DISCORD_APPLICATION_CLIENT_ID,
-                    process.env.DISCORD_LOCKING_D_SERVER_ID
+                    config.DISCORD_APPLICATION_CLIENT_ID,
+                    config.DISCORD_LOCKING_D_SERVER_ID
                 ),
                 { body: commandDataJSON }
             );

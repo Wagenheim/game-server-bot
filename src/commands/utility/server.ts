@@ -16,7 +16,7 @@ export class ServerCommand extends AbstractCommand {
     }
 
     public async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
-        await interaction.reply(`Server name: ${interaction.guild.name}`);
+        await interaction.reply(`Server name: ${interaction.guild?.name ?? 'unknown (DM)'}`);
     }
 
 }

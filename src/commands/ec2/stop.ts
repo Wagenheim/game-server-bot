@@ -1,19 +1,14 @@
 import { CacheType, ChatInputCommandInteraction, TextChannel } from "discord.js";
-import { Ec2AbstractCommand } from "./ec2-abstract-command.js";
-import { StopInstancesCommand } from "@aws-sdk/client-ec2";
-import { ec2Client } from "../../index.js";
-import { client } from "../../index.js"
+import { AbstractCommand } from "../utility/abstract-command.js";
+import { client } from "../../index.js";
 import DiscordInteractionErrorHandler from "../../err/discord-interaction-error-handler.js";
 import DiscordMessageErrorHandler from "../../err/discord-message-error-handler.js";
-import AwsErrorHandler from "../../err/aws-error-handler.js";
+import { config } from "../../util/config.js";
+import { ec2Instance } from "../../util/aws/ec2-instance.js";
 
-export class StopCommand extends Ec2AbstractCommand {
+export class StopCommand extends AbstractCommand {
 
     private description = 'stop the server';
-
-    private awsStopCommand = new StopInstancesCommand({
-        InstanceIds: [process.env.EC2_INSTANCE_ID]
-    });
 
     constructor(name: string){
         super(name);
@@ -22,13 +17,13 @@ export class StopCommand extends Ec2AbstractCommand {
 
     public async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
         try {
-            const instanceState = await this.getStatus();
+            const instanceState = await ec2Instance.getStatus();
             switch(instanceState) {
                 case 'stopped':
                     this.sendReply(interaction, 'Instance is already stopped.');
                     break;
                 case 'running':
-                    if (interaction.user.username !== process.env.DISCORD_ADMIN_USER_NAME) {
+                    if (interaction.user.username !== config.DISCORD_ADMIN_USER_NAME) {
                         this.sendReply(interaction, 'Not sure I should be doing this without Kevin...');
                         break;
                     }
@@ -55,24 +50,11 @@ export class StopCommand extends Ec2AbstractCommand {
     }
 
     private async stopInstance(): Promise<void> {
-        
-        try {
-            const response = await ec2Client.send(this.awsStopCommand);
-            if (response.$metadata.httpStatusCode !== 200) {
-                throw new AwsErrorHandler(response, 'restartServer()');
-            }
-        } catch (error) {
-            if (error instanceof AwsErrorHandler) {
-                error.handle();
-            } else {
-                console.log(error);
-            }
-        }
-        
+        await ec2Instance.stop();
         return new Promise<void>(() => {
             setTimeout(() => {
-                const channel = client.channels.cache.get(process.env.DISCORD_CHANNEL_ID) as TextChannel;
-                this.getStatus().then(status => {
+                const channel = client.channels.cache.get(config.DISCORD_CHANNEL_ID) as TextChannel;
+                ec2Instance.getStatus().then(status => {
                     try {
                         if (status === 'stopped') {
                             channel.send('Server has been stopped.');

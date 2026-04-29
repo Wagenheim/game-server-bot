@@ -1,8 +1,9 @@
-import { CacheType, ChatInputCommandInteraction, TextChannel } from "discord.js";
-import { Ec2AbstractCommand } from "./ec2-abstract-command.js";
+import { CacheType, ChatInputCommandInteraction } from "discord.js";
+import { AbstractCommand } from "../utility/abstract-command.js";
 import DiscordInteractionErrorHandler from "../../err/discord-interaction-error-handler.js";
+import { ec2Instance } from "../../util/aws/ec2-instance.js";
 
-export class StatusCommand extends Ec2AbstractCommand {
+export class StatusCommand extends AbstractCommand {
 
     private description = 'get the status of the server';
 
@@ -13,7 +14,7 @@ export class StatusCommand extends Ec2AbstractCommand {
 
     public async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
         try {
-            const instanceState = await this.getStatus();
+            const instanceState = await ec2Instance.getStatus();
             switch(instanceState) {
                 case 'running':
                 case 'stopped':

@@ -1,18 +1,15 @@
 import { CacheType, ChatInputCommandInteraction, TextChannel } from "discord.js";
-import { Ec2AbstractCommand } from "./ec2-abstract-command.js";
-import { RebootInstancesCommand } from "@aws-sdk/client-ec2";
-import { client, ec2Client } from "../../index.js";
+import { AbstractCommand } from "../utility/abstract-command.js";
+import { client } from "../../index.js";
 import DiscordMessageErrorHandler from "../../err/discord-message-error-handler.js";
 import DiscordInteractionErrorHandler from "../../err/discord-interaction-error-handler.js";
-import AwsErrorHandler from "../../err/aws-error-handler.js";
+import { config } from "../../util/config.js";
+import { adapter } from "../../index.js";
+import { ec2Instance } from "../../util/aws/ec2-instance.js";
 
-export class RestartCommand extends Ec2AbstractCommand {
+export class RestartCommand extends AbstractCommand {
 
     private description = 'restart the server';
-
-    private awsRebootCommand = new RebootInstancesCommand({
-        InstanceIds: [process.env.EC2_INSTANCE_ID]
-    });
 
     constructor(name: string){
         super(name);
@@ -21,10 +18,10 @@ export class RestartCommand extends Ec2AbstractCommand {
 
     public async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
         try {
-            const instanceState = await this.getStatus();
+            const instanceState = await ec2Instance.getStatus();
             switch(instanceState) {
                 case 'running':
-                    if (interaction.user.username !== process.env.DISCORD_ADMIN_USER_NAME) {
+                    if (interaction.user.username !== config.DISCORD_ADMIN_USER_NAME) {
                         this.sendReply(interaction, 'Not sure I should be doing this without Kevin...');
                         break;
                     }
@@ -53,28 +50,15 @@ export class RestartCommand extends Ec2AbstractCommand {
         }
     }
 
-    private async restartServer(): Promise<void> { 
-    
-        try {
-            const response = await ec2Client.send(this.awsRebootCommand);
-            if (response.$metadata.httpStatusCode !== 200) {
-                throw new AwsErrorHandler(response, 'RestartCommand.restartServer()');
-            }
-        } catch (error) {
-            if (error instanceof AwsErrorHandler) {
-                error.handle();
-            } else {
-                console.log(error);
-            }
-        }
-
+    private async restartServer(): Promise<void> {
+        await ec2Instance.reboot();
         return new Promise<void>(() => {
             setTimeout(() => {
-                const channel = client.channels.cache.get(process.env.DISCORD_CHANNEL_ID) as TextChannel;
-                this.getIp().then(ip => {
+                const channel = client.channels.cache.get(config.DISCORD_CHANNEL_ID) as TextChannel;
+                ec2Instance.getIp().then(ip => {
                     try {
                         if (ip) {
-                            channel.send(`Server back up on ${ip}:8211.`);
+                            channel.send(`Server back up on ${ip}:${adapter.gamePort}.`);
                         } else {
                             channel.send('Sever doesnt\'t have an IP after 1 minute. Run /status to see what its doing.');
                         }

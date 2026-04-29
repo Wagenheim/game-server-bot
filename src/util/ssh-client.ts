@@ -1,5 +1,6 @@
 import SSH, { SSHConfig }  from 'simple-ssh';
 import SshClientErrorHandler from '../err/ssh-client-error-handler.js'
+import { config } from './config.js';
 
 export default class SshClient {
 
@@ -9,7 +10,7 @@ export default class SshClient {
         const sshConfig: SSHConfig = {
             host: ip,
             user: user,
-            key: process.env.EC2_SSH_PRIVATE_KEY
+            key: config.EC2_SSH_PRIVATE_KEY
         }
         this.ssh = new SSH(sshConfig);
     }
