@@ -1,42 +1,40 @@
-# Palworld Server Manager Discord Bot
+# Game Server Manager Discord Bot
 
-A TypeScript-based Discord bot for managing a dedicated Palworld multiplayer server hosted on AWS EC2.
+A TypeScript Discord bot that controls dedicated game servers running on AWS EC2. It uses a pluggable game-adapter architecture, currently shipping with adapters for **Palworld** and **Minecraft**.
 
 ## Features
 
-- **Start / Stop / Restart Server**: Control your EC2-hosted Palworld server from Discord.
-- **Get Server IP**: Retrieve the public IP address of the running EC2 instance.
-- **List Players**: Display a list of currently connected players.
-- **Backup Server Data**: Archive world/save data to an S3 bucket.
-- **Auto-Shutdown**: Automatically stop the EC2 instance when no players are connected for a defined time.
-- **Scheduled Monitoring**: Background cron jobs check for player activity and manage the server accordingly.
+- **Lifecycle control**: start, stop, restart, and check the status of the underlying EC2 instance.
+- **Player visibility**: list connected players via game-specific protocols (Palworld REST API, Minecraft RCON).
+- **Backups**: archive world/save data to S3 directly from the host using AWS SSM Run Command.
+- **Whitelist management** (Minecraft): add, remove, and list whitelisted players over RCON.
+- **Auto-shutdown**: scheduled job stops the instance after a configurable idle window with no players online.
+- **Game-adapter pattern**: a single bot binary picks the active adapter at startup, so adding a new game is a matter of implementing one interface.
 
-## Technologies Used
+## Architecture
 
-- [TypeScript](https://www.typescriptlang.org/)
-- [Discord.js](https://discord.js.org/)
-- [AWS SDK for JavaScript (v3)](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/)
-- [Node-cron](https://www.npmjs.com/package/node-cron)
+- **Controller** — small EC2 instance running the bot in Docker; outbound-only, no public ports.
+- **Game instance** — separate EC2 instance hosting the game server, started/stopped on demand.
+- **Remote execution** — AWS SSM Run Command instead of SSH; no inbound ports, no key material on the controller, IAM-scoped via instance tags.
+- **RCON** — VPC-internal only, reachable from the controller's security group; never exposed publicly.
 
-## Prerequisites
+## Tech Stack
 
-- AWS account with access to EC2 and S3
-- Discord bot token and server
-- Node.js (v16+)
-- TypeScript configured in your project
+- [TypeScript](https://www.typescriptlang.org/) on Node.js
+- [Discord.js](https://discord.js.org/) for slash commands
+- [AWS SDK for JavaScript v3](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/) (`@aws-sdk/client-ec2`, `@aws-sdk/client-ssm`)
+- [rcon-srcds](https://www.npmjs.com/package/rcon-srcds) for the Source RCON protocol
+- Docker / Docker Compose for deployment
 
-## Bot Commands (Example)
+## Bot Commands
 
-- `/start` - Starts the Palworld EC2 server
-- `/stop` - Stops the server
-- `/restart` - Restarts the server
-- `/status` - Fetches the current status of the server
-- `/ip` - Returns the public IP of the instance
-- `/players` - Lists currently connected players
-- `/backup` - Uploads a backup to S3
-
+- `/start`, `/stop`, `/restart`, `/status` — EC2 lifecycle
+- `/ip` — current public address of the running instance
+- `/players` — list connected players
+- `/backup` — push a world/save archive to S3
+- `/whitelist add|remove|list` — Minecraft whitelist management
+- `/server` — bot/server info
 
 ---
 
-> This bot was built to automate and manage multiplayer server hosting using cloud infrastructure. It showcases real-world use of AWS APIs, server automation, and bot-based interfaces.
-
+> Built to automate self-hosted multiplayer game servers on cloud infrastructure. Demonstrates AWS SDK v3 usage, agent-based remote execution (SSM), pluggable adapter design, and containerized deployment.
