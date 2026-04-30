@@ -10,7 +10,7 @@ const commands = [
     'ip',
     'stop',
     'status',
-    'whitelist',
+    // 'whitelist',
     'restart',
     'show-players',
     'update',

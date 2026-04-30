@@ -5,8 +5,8 @@
   "main": "./build/index.js",
   "type": "module",
   "scripts": {
-    "build": "tsc",
-    "start": "tsc && node build/index.js",
+    "build": "tsc && cp -r src/scripts build/scripts",
+    "start": "tsc && cp -r src/scripts build/scripts && node build/index.js",
     "bot": "node build/index.js"
   },
   "author": "",

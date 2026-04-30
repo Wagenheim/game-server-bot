@@ -1,5 +1,5 @@
 import { GameAdapter } from './game-adapter.js';
-import { requiredString } from '../util/env.js';
+import { loadScript } from '../util/load-scripts.js';
 
 function parsePalworldPlayers(response: string): string[] {
     return response
@@ -19,10 +19,10 @@ export function createPalworldAdapter(): GameAdapter {
             parsePlayerNames: parsePalworldPlayers,
         },
         serverScripts: {
-            start: requiredString('GAME_START_SCRIPT'),
-            stop: requiredString('GAME_STOP_SCRIPT'),
-            backup: requiredString('GAME_BACKUP_SCRIPT'),
-            update: requiredString('GAME_UPDATE_SCRIPT'),
+            start: loadScript('palworld', 'start'),
+            stop: loadScript('palworld', 'stop'),
+            backup: loadScript('palworld', 'backup'),
+            update: loadScript('palworld', 'update'),
         },
     };
 }
