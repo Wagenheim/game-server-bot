@@ -1,19 +1,15 @@
 import { CacheType, ChatInputCommandInteraction, TextChannel } from "discord.js";
-import { Ec2AbstractCommand } from "./ec2-abstract-command.js";
-import { StartInstancesCommand } from "@aws-sdk/client-ec2";
-import { ec2Client } from "../../index.js";
-import { client } from "../../index.js"
+import { AbstractCommand } from "../utility/abstract-command.js";
+import { client } from "../../index.js";
 import DiscordInteractionErrorHandler from "../../err/discord-interaction-error-handler.js";
-import AwsErrorHandler from "../../err/aws-error-handler.js";
 import DiscordMessageErrorHandler from "../../err/discord-message-error-handler.js";
+import { config } from "../../util/config.js";
+import { adapter } from "../../index.js";
+import { ec2Instance } from "../../util/aws/ec2-instance.js";
 
-export class StartCommand extends Ec2AbstractCommand {
+export class StartCommand extends AbstractCommand {
 
     private description = 'start up the server';
-
-    private awsStartCommand = new StartInstancesCommand({
-        InstanceIds: [process.env.EC2_INSTANCE_ID]
-    });
 
     constructor(name: string){
         super(name);
@@ -22,11 +18,11 @@ export class StartCommand extends Ec2AbstractCommand {
 
     public async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
         try {
-            const instanceState = await this.getStatus();
+            const instanceState = await ec2Instance.getStatus();
             switch(instanceState) {
-                case 'running': 
-                    const publicIp = await this.getIp();
-                    this.sendReply(interaction, `Server is already running on ${publicIp}:8211`);
+                case 'running':
+                    const publicIp = await ec2Instance.getIp();
+                    this.sendReply(interaction, `Server is already running on ${publicIp}:${adapter.gamePort}`);
                     break;
                 case 'stopped':
                     this.sendReply(interaction, `Starting up! Will post the IP here when its ready.`);
@@ -52,26 +48,14 @@ export class StartCommand extends Ec2AbstractCommand {
     }
 
     private async startInstance(): Promise<void> {
-        
-        try {
-            const response = await ec2Client.send(this.awsStartCommand);
-            if (response.$metadata.httpStatusCode !== 200) {
-                throw new AwsErrorHandler(response, 'startInstance()');
-            }
-        } catch (error) {
-            if (error instanceof AwsErrorHandler) {
-                error.handle();
-            } else {
-                console.log(error);
-            }
-        }
+        await ec2Instance.start();
         return new Promise<void>(() => {
             setTimeout(() => {
-                const channel = client.channels.cache.get(process.env.DISCORD_CHANNEL_ID) as TextChannel;
-                this.getIp().then(ip => {
+                const channel = client.channels.cache.get(config.DISCORD_CHANNEL_ID) as TextChannel;
+                ec2Instance.getIp().then(ip => {
                     try {
                         if (ip) {
-                            channel.send(`Server up and running on ${ip}:8211`);
+                            channel.send(`Server up and running on ${ip}:${adapter.gamePort}`);
                         } else {
                             channel.send('No IP after 2 minutes. Run /status to see whats going on.');
                         }

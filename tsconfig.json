@@ -1,10 +1,12 @@
 {
     "compilerOptions": {
+      "rootDir": "./src",
       "outDir": "./build",
       "allowJs": true,
-      "target": "es2020",
-      "moduleResolution":"node",
-      "module": "es2022",
+      "target": "esnext",
+      "moduleResolution": "nodenext",
+      "module": "nodenext",
+      "strict": true,
       "removeComments": true
     },
     "include": ["./src/**/*"]

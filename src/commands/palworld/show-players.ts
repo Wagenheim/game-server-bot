@@ -1,9 +1,11 @@
 import { CacheType, ChatInputCommandInteraction } from "discord.js";
-import { AbstractPalworldCommand } from "./palworld-abstract-command.js";
+import { AbstractGameCommand } from "../abstract-game-command.js";
 import DiscordInteractionErrorHandler from "../../err/discord-interaction-error-handler.js";
-import palRconClient from "../../util/rcon-client.js";
+import { executeRconCommand } from "../../util/rcon.js";
+import { adapter } from "../../index.js";
+import { ec2Instance } from "../../util/aws/ec2-instance.js";
 
-export class ShowPlayersCommand extends AbstractPalworldCommand{
+export class ShowPlayersCommand extends AbstractGameCommand {
 
     private description = 'show current player count'
 
@@ -14,27 +16,21 @@ export class ShowPlayersCommand extends AbstractPalworldCommand{
 
     public async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
         try {
-
-            const instanceState = await this.getStatus();
+            const instanceState = await ec2Instance.getStatus();
 
             if (instanceState !== 'running') {
                 interaction.reply('Instance is not running, run /status to see whats going on.');
                 return;
             }
 
-            const rconClient = await new palRconClient().connect();
             await interaction.deferReply();
-            let response = '';
-            response = await rconClient.cmd('ShowPlayers');
-            if (response) {
-                const cleanList = response
-                                .replace(/[a-z]*,[a-z]*,[a-z]*\n/, '')
-                                .replace(/,\d*,\d*/g, '')
-                                .trim()
-                                .split('\n');
+            const response = await executeRconCommand(adapter.rcon.listPlayersCommand);
 
-                if (cleanList[0] && cleanList.length > 0) {
-                    await interaction.editReply("```" + cleanList + "```");
+            if (response) {
+                const cleanList = adapter.rcon.parsePlayerNames(response);
+
+                if (cleanList.length > 0) {
+                    await interaction.editReply("```" + cleanList.join('\n') + "```");
                 } else {
                     await interaction.editReply('The server is currently empty.');
                 }
