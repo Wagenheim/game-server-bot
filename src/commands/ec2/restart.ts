@@ -58,7 +58,8 @@ export class RestartCommand extends AbstractCommand {
                 ec2Instance.getIp().then(ip => {
                     try {
                         if (ip) {
-                            channel.send(`Server back up on ${ip}:${adapter.gamePort}.`);
+                            const reply = adapter.ipIncludesPort ? `${ip}:${adapter.gamePort}` : `${ip}`;
+                            channel.send(`Server back up on ${reply}.`);
                         } else {
                             channel.send('Sever doesnt\'t have an IP after 1 minute. Run /status to see what its doing.');
                         }

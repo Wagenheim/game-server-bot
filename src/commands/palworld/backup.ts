@@ -46,7 +46,8 @@ export default class BackupCommand extends AbstractGameCommand {
         await runShellScript(adapter.serverScripts.start);
 
         setTimeout(() => {
-            channel.send(`Restarted the server. IP: ${ip}:${adapter.gamePort}`);
+            const reply = adapter.ipIncludesPort ? `${ip}:${adapter.gamePort}` : `${ip}`;
+            channel.send(`Restarted the server. IP: ${reply}`);
         }, 120000);
     }
 

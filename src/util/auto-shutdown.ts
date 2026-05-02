@@ -5,7 +5,7 @@ import { adapter, client } from '../index.js';
 import { config } from './config.js';
 
 const POLL_INTERVAL_MS = 30 * 60 * 1000;
-const SHUTDOWN_DELAY_MS = 60 * 60 * 1000;
+const SHUTDOWN_DELAY_MS = 30 * 60 * 1000;
 
 async function checkForPlayers(): Promise<number | null> {
     const status = await ec2Instance.getStatus();
@@ -37,7 +37,7 @@ async function tick(): Promise<void> {
     if (playerCount === null || playerCount > 0) return;
 
     const channel = client.channels.cache.get(config.DISCORD_CHANNEL_ID) as TextChannel;
-    channel.send('No players were found on the server. If there is no one on the server in an hour from now, it will be shut down.');
+    channel.send('No players were found on the server. If there is no one on the server in 30 minutes from now, it will be shut down.');
 
     setTimeout(shutdownIfStillEmpty, SHUTDOWN_DELAY_MS);
 }

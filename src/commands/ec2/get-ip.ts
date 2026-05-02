@@ -21,7 +21,8 @@ export class GetIpCommand extends AbstractCommand {
             }
             const publicIp = await ec2Instance.getIp();
             if (publicIp) {
-                this.sendReply(interaction, `${publicIp}:${adapter.gamePort}`);
+                const reply = adapter.ipIncludesPort ? `${publicIp}:${adapter.gamePort}` : `${publicIp}`;
+                this.sendReply(interaction, reply);
             } else {
                 this.sendReply(interaction, 'Currently no public IP. Run /status to see whats going on.');
             }

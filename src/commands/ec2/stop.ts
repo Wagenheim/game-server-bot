@@ -1,10 +1,23 @@
-import { CacheType, ChatInputCommandInteraction, TextChannel } from "discord.js";
+import {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    CacheType,
+    ChatInputCommandInteraction,
+    ComponentType,
+    MessageFlags,
+    TextChannel,
+} from "discord.js";
 import { AbstractCommand } from "../utility/abstract-command.js";
 import { client } from "../../index.js";
 import DiscordInteractionErrorHandler from "../../err/discord-interaction-error-handler.js";
 import DiscordMessageErrorHandler from "../../err/discord-message-error-handler.js";
 import { config } from "../../util/config.js";
 import { ec2Instance } from "../../util/aws/ec2-instance.js";
+
+const CONFIRM_ID = 'stop-confirm';
+const CANCEL_ID = 'stop-cancel';
+const CONFIRM_WINDOW_MS = 30_000;
 
 export class StopCommand extends AbstractCommand {
 
@@ -23,12 +36,7 @@ export class StopCommand extends AbstractCommand {
                     this.sendReply(interaction, 'Instance is already stopped.');
                     break;
                 case 'running':
-                    if (interaction.user.username !== config.DISCORD_ADMIN_USER_NAME) {
-                        this.sendReply(interaction, 'Not sure I should be doing this without Kevin...');
-                        break;
-                    }
-                    this.sendReply(interaction, 'Shutting server down...');
-                    await this.stopInstance();
+                    await this.confirmAndStop(interaction);
                     break;
                 case 'pending':
                 case 'shutting-down':
@@ -46,6 +54,38 @@ export class StopCommand extends AbstractCommand {
         } catch (error){
             const discordError = new DiscordInteractionErrorHandler('StopCommand.execute()', interaction, error);
             discordError.handle();
+        }
+    }
+
+    private async confirmAndStop(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
+        const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+            new ButtonBuilder().setCustomId(CONFIRM_ID).setLabel('Stop server').setStyle(ButtonStyle.Danger),
+            new ButtonBuilder().setCustomId(CANCEL_ID).setLabel('Cancel').setStyle(ButtonStyle.Secondary),
+        );
+
+        const prompt = await interaction.reply({
+            content: 'Are you sure you want to stop the server? Anyone still playing will be disconnected.',
+            components: [row],
+            flags: MessageFlags.Ephemeral,
+        });
+
+        try {
+            const press = await prompt.awaitMessageComponent({
+                filter: i => i.user.id === interaction.user.id,
+                componentType: ComponentType.Button,
+                time: CONFIRM_WINDOW_MS,
+            });
+
+            if (press.customId !== CONFIRM_ID) {
+                await press.update({ content: 'Cancelled.', components: [] });
+                return;
+            }
+
+            await press.update({ content: 'Confirmed.', components: [] });
+            await interaction.followUp({ content: `Shutting server down (requested by ${interaction.user}).` });
+            await this.stopInstance();
+        } catch {
+            await interaction.editReply({ content: 'Confirmation timed out — server was not stopped.', components: [] });
         }
     }
 

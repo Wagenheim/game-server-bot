@@ -13,8 +13,8 @@ const commands = [
     // 'whitelist',
     'restart',
     'show-players',
-    'update',
-    'backup'
+    // 'update',
+    // 'backup'
 ];
 
 //Start up the clients

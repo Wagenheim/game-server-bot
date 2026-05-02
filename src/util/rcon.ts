@@ -3,9 +3,9 @@
  * Each call is a fresh connection — the server's IP can change after restarts,
  * so caching a socket isn't safe.
  *
- * rcon-srcds ships as CJS with d.ts using `export default`. Under module:nodenext
- * TS resolves the import to the namespace rather than the class, so we re-type
- * the surface we actually use. Node's __esModule flag handles the unwrap at runtime.
+ * rcon-srcds is CJS (`exports.default = RCON`). Node's ESM interop hands back
+ * the whole module.exports namespace for default imports — it does not honor
+ * __esModule the way bundlers do — so we unwrap `.default` ourselves.
  */
 import RconImport from 'rcon-srcds';
 import { config } from './config.js';
@@ -16,7 +16,9 @@ type RconClient = {
     execute(command: string): Promise<string | boolean>;
     disconnect(): Promise<void>;
 };
-const Rcon = RconImport as unknown as new (opts: { host: string; port: number }) => RconClient;
+type RconCtor = new (opts: { host: string; port: number }) => RconClient;
+const RconModule = RconImport as unknown as RconCtor & { default?: RconCtor };
+const Rcon: RconCtor = RconModule.default ?? RconModule;
 
 export async function executeRconCommand(command: string): Promise<string> {
     const host = await ec2Instance.getIp();

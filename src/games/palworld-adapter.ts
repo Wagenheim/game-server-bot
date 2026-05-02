@@ -14,6 +14,7 @@ export function createPalworldAdapter(): GameAdapter {
     return {
         name: 'Palworld',
         gamePort: 8211,
+        ipIncludesPort: true,
         rcon: {
             listPlayersCommand: 'ShowPlayers',
             parsePlayerNames: parsePalworldPlayers,

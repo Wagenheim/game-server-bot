@@ -11,6 +11,7 @@
 export interface GameAdapter {
     readonly name: string;
     readonly gamePort: number;
+    readonly ipIncludesPort: boolean;
     readonly rcon: {
         readonly listPlayersCommand: string;
         parsePlayerNames(response: string): string[];

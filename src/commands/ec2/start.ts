@@ -22,7 +22,8 @@ export class StartCommand extends AbstractCommand {
             switch(instanceState) {
                 case 'running':
                     const publicIp = await ec2Instance.getIp();
-                    this.sendReply(interaction, `Server is already running on ${publicIp}:${adapter.gamePort}`);
+                    const reply = adapter.ipIncludesPort ? `${publicIp}:${adapter.gamePort}` : `${publicIp}`;
+                    this.sendReply(interaction, `Server is already running on ${reply}`);
                     break;
                 case 'stopped':
                     this.sendReply(interaction, `Starting up! Will post the IP here when its ready.`);
@@ -55,7 +56,8 @@ export class StartCommand extends AbstractCommand {
                 ec2Instance.getIp().then(ip => {
                     try {
                         if (ip) {
-                            channel.send(`Server up and running on ${ip}:${adapter.gamePort}`);
+                            const reply = adapter.ipIncludesPort ? `${ip}:${adapter.gamePort}` : `${ip}`;
+                            channel.send(`Server up and running on ${reply}`);
                         } else {
                             channel.send('No IP after 2 minutes. Run /status to see whats going on.');
                         }

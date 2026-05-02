@@ -15,6 +15,7 @@ export function createMinecraftAdapter(): GameAdapter {
     return {
         name: 'Minecraft',
         gamePort: 25565,
+        ipIncludesPort: false,
         rcon: {
             listPlayersCommand: 'list',
             parsePlayerNames: parseMinecraftPlayers,
