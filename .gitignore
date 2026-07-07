@@ -3,3 +3,4 @@ build
 .env
 deploy.sh
 notes
+.claude

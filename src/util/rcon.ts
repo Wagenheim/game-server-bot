@@ -20,6 +20,27 @@ type RconCtor = new (opts: { host: string; port: number }) => RconClient;
 const RconModule = RconImport as unknown as RconCtor & { default?: RconCtor };
 const Rcon: RconCtor = RconModule.default ?? RconModule;
 
+const RCON_TIMEOUT_MS = 5000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+        const timer = setTimeout(
+            () => reject(new Error(`RCON ${label} timed out`)),
+            ms
+        );
+        promise.then(
+            value => {
+                clearTimeout(timer);
+                resolve(value);
+            },
+            err => {
+                clearTimeout(timer);
+                reject(err);
+            }
+        )
+    });
+}
+
 export async function executeRconCommand(command: string): Promise<string> {
     const host = await ec2Instance.getIp();
     if (!host) {
@@ -28,8 +49,8 @@ export async function executeRconCommand(command: string): Promise<string> {
 
     const rcon = new Rcon({ host, port: config.RCON_PORT });
     try {
-        await rcon.authenticate(config.RCON_PASSWORD);
-        const result = await rcon.execute(command);
+        await withTimeout(rcon.authenticate(config.RCON_PASSWORD), RCON_TIMEOUT_MS, 'authenticate');
+        const result = await withTimeout(rcon.execute(command), RCON_TIMEOUT_MS, 'execute');
         return typeof result === 'string' ? result : '';
     } finally {
         try {

@@ -1,14 +1,17 @@
 import { GameAdapter } from './game-adapter.js';
 import { loadScript } from '../util/load-scripts.js';
 
-// Minecraft `list` returns: "There are N of a max of M players online: name1, name2"
-// Empty form: "There are 0 of a max of M players online:"
+// Minecraft `list` returns: "There are N of a max of M players online: <names>"
+// Depending on server software the names are separated by commas, spaces, or
+// newlines, and may carry § color codes. Java usernames are [A-Za-z0-9_] (no
+// spaces), so splitting on any run of comma/whitespace is safe and delimiter-proof.
 function parseMinecraftPlayers(response: string): string[] {
-    const colonIdx = response.indexOf(':');
+    const clean = response.replace(/§./g, '');   // strip § + format code
+    const colonIdx = clean.lastIndexOf(':');          // names follow the last colon
     if (colonIdx === -1) return [];
-    const tail = response.substring(colonIdx + 1).trim();
+    const tail = clean.slice(colonIdx + 1).trim();
     if (!tail) return [];
-    return tail.split(',').map(name => name.trim()).filter(name => name.length > 0);
+    return tail.split(/[\s,]+/).filter(name => name.length > 0);
 }
 
 export function createMinecraftAdapter(): GameAdapter {

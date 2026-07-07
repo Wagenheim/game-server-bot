@@ -5,6 +5,10 @@ services:
     container_name: game-server-bot
     env_file: .env
     restart: unless-stopped
+    mem_limit: 300m
+    mem_reservation: 200m
+    environment:
+      - NODE_OPTIONS=--max-old-space-size=192
     logging:
       driver: json-file
       options:
